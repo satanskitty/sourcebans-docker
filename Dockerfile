@@ -6,7 +6,7 @@ RUN git clone https://github.com/sbpp/sourcebans-pp.git && \
     composer install --no-dev --no-interaction --no-progress --optimize-autoloader --ignore-platform-reqs --working-dir=sourcebans-pp/web/
 
 # Build the actual image
-FROM php:8.1-apache
+FROM php:8.1-fpm
 
 ENV INSTALL=false \
     SET_OWNER_UID=33 \
@@ -17,6 +17,7 @@ RUN savedAptMark="$(apt-mark showmanual)" && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libgmp-dev \
+        nginx \
     && \
     rm -rf /var/lib/apt/lists/* && \
     docker-php-ext-configure gmp && \
@@ -27,14 +28,15 @@ RUN savedAptMark="$(apt-mark showmanual)" && \
 
 RUN mkdir /docker/ && \
     mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini && \
-    sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf && \
-    sed -i 's/80/8080/g' /etc/apache2/sites-enabled/000-default.conf
+    sed -i 's/listen = 127.0.0.1:9000/listen = 9000/g' /usr/local/etc/php-fpm.d/www.conf
 
 COPY --from=composer /app/sourcebans-pp/web /usr/src/sourcebans
 COPY docker-sourcebans-entrypoint.sh /docker/docker-sourcebans-entrypoint.sh
 COPY sourcebans.ini /usr/local/etc/php/conf.d/sourcebans.ini
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY sourcebans-site.conf /etc/nginx/conf.d/default.conf
 
 RUN chmod +x /docker/docker-sourcebans-entrypoint.sh
 
 ENTRYPOINT ["/docker/docker-sourcebans-entrypoint.sh"]
-CMD ["apache2-foreground"]
+CMD ["php-fpm"]
