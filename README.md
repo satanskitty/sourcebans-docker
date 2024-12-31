@@ -20,7 +20,7 @@ If you use [Docker Compose](https://docs.docker.com/compose/) there is an exampl
 2. Set environment variable `INSTALL` to true.
 3. Run `docker-compose up`.
 4. Visit https://example.org/install and enter your database and admin credentials.
-5. Stop using `STRG+C` or `docker-compose down`.
+5. Stop the container using `STRG+C` or `docker-compose down`.
 6. Set environment variable `INSTALL` to false.
 7. Run `docker-compose up` and visit your new Sourcebans installation.
 
